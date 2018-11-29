@@ -1,0 +1,78 @@
+#!/usr/bin/env python
+
+"""
+File: search_py2_print.py
+Project: REASON
+Company: Jet Propulsion Laboratory
+07-26-2018
+
+Description:
+This script searches for "print " on Python 2 scripts and insert () to make
+it compatible with Python 3.
+1. Open a file and search for "print ", that's print with a space after.
+2. If found, replace space with ( and get print(.
+3. Count number of open (.  Is it an even number?  If so go to the next line
+   and add closing ) at end of line.
+4. If odd number of ( counted, go to end of that same line and insert )
+   before end of line "\n".
+5. Do this for the rest of the file.
+5. Reopen the same file and replace file with new lines.
+
+Enter srch_py2_print.py name_of_file.*
+
+"""
+import argparse
+from conversion_functions import *
+
+parser = argparse.ArgumentParser()
+parser.add_argument("infile_filename", help="any filename",
+                                        type=str)
+args = parser.parse_args()
+
+
+str1 = "print "         # String to be searched.
+str2 = "print("         # Replace str1 with str2.
+eol_str = "\n"          # Find end of line.
+str3 = ")\n"            # Insert ) before eol.
+found_cntr = 0          # Count number of lines edited.
+line_chg_num = []       # List of lines that have been edited.
+y = 0                           # Index for line_chg_num.
+lines_chg_list = []     # List lines that were changed.
+
+evn_cnt = 0                     # even count flag
+
+with open(args.infile_filename, "r") as infile:
+        # Read entire file into memory.
+        lines = infile.readlines()
+        for i in range(0, len(lines)):
+                #print(i)
+                # If str1 is found do something.
+                if lines[i].find(str1) > -1:
+                        lines[i] = lines[i].replace(str1, str2)
+                        found_cntr = found_cntr + 1
+                        line_chg_num.insert(y, i + 1)
+                        lines_chg_list.insert(y, lines[i])
+                        y = y + 1
+                        # Count number of open ( occurences.
+                        # If even don't add closing ) at eol.
+                        par_cnt = lines[i].count('(')
+                        print(par_cnt)
+                        if par_cnt % 2 == 0: # if count is even
+                                evn_cnt = 1
+                        else: # if count is odd, insert closing ) at eol
+                                lines[i] = lines[i].replace(eol_str, str3)
+                else: # If "print " is not found
+                        if evn_cnt == 1:
+                                # If even count flag is true, add closing ) at eol.
+                                lines[i] = lines[i].replace(eol_str, str3)
+                                # Clear evn_cnt flag when done.
+                                evn_cnt = 0                                                                                             
+
+print("Lines edited: %d" % found_cntr)
+print("Lines that were changed: %s" % str(line_chg_num))
+for j in lines_chg_list:
+        print("String that was changed: %s" % j)
+
+with open(args.infile_filename, "w") as outfile:
+        for list_item in lines:
+                outfile.write('%s' % list_item)
